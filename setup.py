@@ -18,7 +18,7 @@ with open('README.rst', 'rb') as f:
     long_desc = f.read().decode('utf-8')
 
 setup(name='ecbxrate',
-      version='0.2.2',
+      version='0.2.3',
       description='Exchange rates for Python',
       long_description=long_desc,
       author='Alastair Houghton',
