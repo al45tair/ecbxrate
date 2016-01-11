@@ -18,14 +18,14 @@ with open('README.rst', 'rb') as f:
     long_desc = f.read().decode('utf-8')
 
 setup(name='ecbxrate',
-      version='0.2.1',
+      version='0.2.2',
       description='Exchange rates for Python',
       long_description=long_desc,
       author='Alastair Houghton',
       author_email='alastair@alastairs-place.net',
       url='http://bitbucket.org/al45tair/ecbxrate',
       license='MIT License',
-      packages=find_packages(),
+      packages=['ecbxrate'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: MIT License',
