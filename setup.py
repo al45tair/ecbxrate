@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 class PyTest(TestCommand):
@@ -25,7 +25,7 @@ setup(name='ecbxrate',
       author_email='alastair@alastairs-place.net',
       url='http://bitbucket.org/al45tair/ecbxrate',
       license='MIT License',
-      packages=['ecbxrate'],
+      packages=find_packages(),
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: MIT License',
