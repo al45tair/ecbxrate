@@ -71,14 +71,20 @@ If you want the latest rate before or on a particular date, you can write
 e.g.::
 
   >>> store.get_rate('EUR', 'GBP', as_of_date=datetime.date(2014, 11, 27),
-  ...                closest_rate=True)
+  ...                closest_rate=ecbxrate.BEFORE)
   (datetime.date(2014, 11, 27), Decimal('0.792000'))
+
+You can also ask for the earliest rate on or after a particular date::
+
+  >>> store.get_rate('EUR', 'GBP', as_of_date=datetime.date(2015, 10, 10),
+  ...                closest_rate=ecbxrate.AFTER)
+  (datetime.date(2015, 10, 12), Decimal('0.740100'))
 
 Note that if you don’t specify ``closest_rate`` in the above code and no rate
 exists on that date, ``get_rate`` will return ``(date, None)``::
 
   >>> store.get_rate('GBP', 'TRL', as_of_date=datetime.date(2014, 11, 27))
-  (datetime.date(2014, 11, 27), None
+  (datetime.date(2014, 11, 27), None)
   >>> store.get_rate('GBP', 'TRL', as_of_date=datetime.date(2014, 11, 27),
   ...                closest_rate=True)
   (datetime.date(2004, 12, 31), Decimal('2604354.301113'))

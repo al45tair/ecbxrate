@@ -14,6 +14,9 @@ parser.add_argument('-d', '--db', '--database',
                     dest='db_url', action='store',
                     nargs='?',
                     help='the database URL')
+parser.add_argument('-a', '--after',
+                    action='store_const',
+                    const=True)
 parser.add_argument('args', nargs='+',
                     help="""may be 'initialise', 'update', 'status'
                     or alternatively a sequence of
@@ -46,8 +49,13 @@ if len(args.args) > 2:
     from_currency = args.args[1].upper()
     to_currency = args.args[2].upper()
 
+    if args.after:
+        closest_rate = ecbxrate.AFTER
+    else:
+        closest_rate = ecbxrate.BEFORE
+        
     date, rate = store.get_rate(from_currency, to_currency, the_date,
-                                closest_rate=True)
+                                closest_rate=closest_rate)
 
     if rate is None:
         print 'No known rate for %s:%s on %s' % (from_currency, to_currency,
