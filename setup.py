@@ -11,7 +11,7 @@ setup(name='ecbxrate',
       author='Alastair Houghton',
       author_email='alastair@alastairs-place.net',
       url='http://bitbucket.org/al45tair/ecbxrate',
-      license='<MIT License',
+      license='MIT License',
       packages=['ecbxrate'],
       classifiers=[
           'Development Status :: 4 - Beta',
