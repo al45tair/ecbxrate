@@ -14,7 +14,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-with open('README.rst', 'r') as f:
+with open('README.rst', 'rb') as f:
     long_desc = f.read().decode('utf-8')
 
 setup(name='ecbxrate',
