@@ -9,7 +9,11 @@ from sqlalchemy.engine import Engine, Connection
 from sqlalchemy import create_engine
 from sqlalchemy.sql import select, exists, func, and_, or_, not_
 
-import urllib2
+try:
+    import urllib2
+except ImportError:
+    import urllib.request as urllib2
+
 import datetime
 import re
 
