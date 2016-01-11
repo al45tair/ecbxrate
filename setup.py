@@ -1,11 +1,24 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        import sys
+        import pytest
+        errno = pytest.main(self.test_args)
+        sys.exit(errno)
 
 with open('README.rst', 'r') as f:
     long_desc = f.read().decode('utf-8')
 
 setup(name='ecbxrate',
-      version='0.1.0',
+      version='0.2.0',
       description='Exchange rates for Python',
       long_description=long_desc,
       author='Alastair Houghton',
@@ -18,6 +31,10 @@ setup(name='ecbxrate',
           'License :: OSI Approved :: MIT License',
           'Topic :: Software Development :: Libraries',
         ],
+      tests_require=['pytest'],
+      cmdclass={
+          'test': PyTest
+          },
       scripts=['scripts/ecbxrate'],
       install_requires=[
         'sqlalchemy >= 0.9.8',

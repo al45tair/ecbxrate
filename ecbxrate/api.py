@@ -19,10 +19,13 @@ from .tables import exchange_rates, info
 
 DAILY_URL = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
 HISTORIC_URL = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.xml'
-HISTORIC_URL_90 = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90.xml'
+HISTORIC_URL_90 = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml'
 CUBE_TAG = '{http://www.ecb.int/vocabulary/2002-08-01/eurofxref}Cube'
 
 _date_re = re.compile(r'^([0-9]{4,})-([0-9]{2})-([0-9]{2})$')
+
+BEFORE='before'
+AFTER='after'
 
 class ExchangeRateStore(object):
     def __init__(self, ecu):
@@ -63,7 +66,10 @@ class ExchangeRateStore(object):
            'latest' for this parameter.
 
            If you specify a date and are happy with the latest rate known
-           prior to that date, you can set ``closest_rate`` to True.
+           prior to that date, you can set ``closest_rate`` to BEFORE.  If
+           you need instead the earliest rate known after that date, you can
+           set ``closest_rate`` to AFTER.  For backwards compatibility,
+           setting closest_rate to True will have the same effect as BEFORE.
 
            If no exchange rate is known for the combination you have
            specified, this method returns (date, None)."""
@@ -82,19 +88,19 @@ class ExchangeRateStore(object):
                 to_rate = decimal.Decimal(1)
                 stmt = None
             else:
-                stmt = select([func.max(er2.c.date).label('date'),
+                stmt = select([er2.c.date.label('date'),
                                er2.c.rate.label('to_rate')]) \
                   .where(er2.c.currency==to_currency)
                 er = er2
         else:
             if to_currency == 'EUR':
                 to_rate = decimal.Decimal(1)
-                stmt = select([func.max(er1.c.date).label('date'),
+                stmt = select([er1.c.date.label('date'),
                                er1.c.rate.label('from_rate')]) \
                   .where(er1.c.currency==from_currency)
                 er = er1
             else:
-                stmt = select([func.max(er1.c.date).label('date'),
+                stmt = select([er1.c.date.label('date'),
                                er1.c.rate.label('from_rate'),
                                er2.c.rate.label('to_rate')]) \
                     .where(and_(er1.c.date==er2.c.date,
@@ -103,9 +109,18 @@ class ExchangeRateStore(object):
                 er = er1
 
         if stmt is not None:
+            if closest_rate == AFTER:
+                stmt = stmt.order_by(er.c.date.asc())
+            else:
+                stmt = stmt.order_by(er.c.date.desc())
+
+            stmt = stmt.limit(1)
+            
             if as_of_date != 'latest':
-                if closest_rate:
+                if closest_rate == True or closest_rate == BEFORE:
                     stmt = stmt.where(er.c.date<=as_of_date)
+                elif closest_rate == AFTER:
+                    stmt = stmt.where(er.c.date>=as_of_date)
                 else:
                     stmt = stmt.where(er.c.date==as_of_date)
             
@@ -186,7 +201,20 @@ class ExchangeRateStore(object):
                                    'rate': rate })
                     
         return (rates, date_count, max_date)
-    
+
+    def create_tables(self, checkfirst=True):
+        """Create the tables if required."""
+        exchange_rates.create(self.engine, checkfirst=checkfirst)
+        info.create(self.engine, checkfirst=checkfirst)
+        conn = self._connect()
+        try:
+            with conn.begin() as trans:
+                conn.execute(info.delete())
+                conn.execute(info.insert(), { 'last_update':
+                                              datetime.date(1970,1,1) })
+        finally:
+            self._disconnect()
+
     def initialise(self, days=None):
         """Initialise the exchange rate store from historic data."""
         url = HISTORIC_URL
@@ -201,8 +229,7 @@ class ExchangeRateStore(object):
             f.close()
             
         # Create the tables if required
-        exchange_rates.create(self.engine, checkfirst=True)
-        info.create(self.engine, checkfirst=True)
+        self.create_tables()
         
         # Save it
         conn = self._connect()
